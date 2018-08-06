@@ -37,6 +37,11 @@ int cube_detector::check_color(Mat src)
 	morphologyEx(imgThresholded1, imgThresholded1, MORPH_OPEN, element);
 	imshow("提取蓝色", imgThresholded1);
 	int a = check(imgThresholded1);
+	if (a == 1)
+		cout << "not complete";
+	else
+		cout << "complete";
+	waitKey(0);
 	return a;
 }
 
@@ -62,6 +67,7 @@ Mat cube_detector::cube_Find(Mat img1)
 	Mat img2;
 	//保存原图
 	img1.copyTo(img2);
+	imshow("原图", img2);
 	//拿到去背景图片，剩下魔方和少量的噪声，基于BGR
 	Mat img = getMat(img1);
 	Mat img_gray, img_binary, img_edge, img_hsv;
