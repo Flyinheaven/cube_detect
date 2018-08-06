@@ -14,27 +14,32 @@
 int main()
 {
 	cube_detector cube;
+	Mat frame, dstImage1,result;
+	int key=0;
 	
-	//摄像头读入一张图片（原图）
-	Mat frame = imread("E://picture/a.jpg");
-	//imshow("原图", frame);
-	
-	//缩小尺寸
-	Mat dstImage1;
-	resize(frame, dstImage1, Size(frame.cols /5 , frame.rows / 5), 0, 0, INTER_LINEAR);
-	imshow("缩小图", dstImage1);
-	
-	//提取魔方，拿到魔方提取图
-	Mat result = cube.cube_Find(dstImage1);
-	
-	//拿到颜色分割图片，然后检测颜色
-	int key = cube.check_color(result);
-	if (key==1)
-		cout << "not complete";
-	else        
-		cout << "complete";
-
-
-	waitKey(0);
+	VideoCapture cap;
+	// open the default camera using default API
+	cap.open(0);
+	// OR advance usage: select any API backend
+	int deviceID = 0;             // 0 = open default camera
+	int apiID = cv::CAP_ANY;      // 0 = autodetect default API
+	// open selected camera using selected API
+	cap.open(deviceID + apiID);
+	if (!cap.isOpened()) {
+		std::cerr << "ERROR! Unable to open camera\n";
+		return -1;
+	}
+	else
+	{
+		cap >> frame;
+		if (frame.empty()) {
+			std::cerr << "ERROR! blank frame grabbed\n";
+		}
+		resize(frame, dstImage1, Size(frame.cols / 3, frame.rows / 3), 0, 0, INTER_LINEAR);
+		//提取魔方，拿到魔方提取图
+		result = cube.cube_Find(dstImage1);
+		//拿到颜色分割图片，然后检测颜色
+		key = cube.check_color(result);
+	}
 	return 0;
 }
