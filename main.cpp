@@ -1,8 +1,9 @@
 /*
-	1.È¡Íâ½Ó¾ØĞÎ:°×É«¿é¹ı¶à»òÕß¼¯ÖĞ³öÏÖ»áµ¼ÖÂÖ»È¡µ½Ò»¸öÃæ¶øÈ¡²»µ½Õû¸öÄ§·½£¬ËùÒÔ²»ÄÜ³öÏÖÒ»¸öÃæÉÏ´óÆ¬°×É«ºÍÀ¶É«Í¬Ê±³öÏÖ
-	2.±³¾°·ÖÀëÊ±ºìÉ«ÓĞÈ±Ê§£¬µ«²»Ó°Ïì½á¹û
-	3.²»ÄÜ°ÑÉãÏñÍ·ÅÄµ½ÍâÃæÈ¥
-	4.¿òÑ¡Ä§·½³É¹¦ÂÊ²»ÄÜ´ïµ½°Ù·ÖÖ®°Ù
+	1.ç™½è‰²å—å’Œçº¢è‰²å—å®¹æ˜“ä¸¢å¤±ï¼Œä¸èƒ½å¤§é‡å‡ºç°åœ¨è¾¹ä¸Š,ç‹—åˆ™å¯èƒ½ä¼šä¸¢å¤±è“è‰²å¿«å¯¼è‡´å‡ºé”™
+	2.æ£•è‰²æœ¨æ¿å…‰ç…§å¼ºæ—¶ä¸æ˜“å»é™¤å¹²å‡€
+
+	**å¯ä¿®æ”¹**ï¼š
+				å»èƒŒæ™¯é˜ˆå€¼:æœ¨æ¿èƒŒæ™¯å»é™¤é—®é¢˜
 */
 
 	
@@ -13,21 +14,27 @@
 int main()
 {
 	cube_detector cube;
-	Mat frame = imread("E://picture/a.jpg");
 	
-	//camera
+	//æ‘„åƒå¤´è¯»å…¥ä¸€å¼ å›¾ç‰‡ï¼ˆåŸå›¾ï¼‰
+	Mat frame = imread("E://picture/a.jpg");
+	//imshow("åŸå›¾", frame);
+	
+	//ç¼©å°å°ºå¯¸
 	Mat dstImage1;
 	resize(frame, dstImage1, Size(frame.cols /5 , frame.rows / 5), 0, 0, INTER_LINEAR);
-	imshow("ËõĞ¡Í¼", dstImage1);
-	Mat result = cube.getMat(dstImage1);
+	imshow("ç¼©å°å›¾", dstImage1);
 	
-	//return
+	//æå–é­”æ–¹ï¼Œæ‹¿åˆ°é­”æ–¹æå–å›¾
+	Mat result = cube.cube_Find(dstImage1);
+	
+	//æ‹¿åˆ°é¢œè‰²åˆ†å‰²å›¾ç‰‡ï¼Œç„¶åæ£€æµ‹é¢œè‰²
 	int key = cube.check_color(result);
 	if (key==1)
 		cout << "not complete";
 	else        
 		cout << "complete";
-	waitKey(0);
 
+
+	waitKey(0);
 	return 0;
 }
