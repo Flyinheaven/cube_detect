@@ -1,57 +1,11 @@
 #include "cube.hpp"
 
-//ÂÖÀª´óĞ¡±È½Ï
+//è½®å»“å¤§å°æ¯”è¾ƒ
 static inline bool ContoursSortFun(vector<cv::Point> contour1, vector<cv::Point> contour2)
 {
 	return (contour1.size() > contour2.size());
 }
 
-Mat cube_detector::cube_Find(Mat img)
-{
-	Mat img_gray, img_binary, img_edge, img_hsv;
-	//×ªÎªHSV¿Õ¼ä
-	cvtColor(img, img_hsv, CV_BGR2HSV);
-	GaussianBlur(img_hsv, img_hsv, Size(5, 5), 0, 0);
-	//Ö±·½Í¼¾ùºâ»¯Èõ»¯±³¾°£¨ÔöÇ¿Ä§·½Í¼Ïñ£©
-	vector<Mat> hsvSplit;
-	split(img_hsv, hsvSplit);
-	equalizeHist(hsvSplit[2], hsvSplit[2]);
-	merge(hsvSplit, img_hsv);
-	cvtColor(img_hsv, img_gray, CV_BGR2GRAY);
-	medianBlur(img_gray, img_gray, 3);
-	//***********ÅÅ³ı×ØÉ«±³¾°¸ÉÈÅ*******************
-	cv::adaptiveThreshold(img_gray, img_binary, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 7, -4);
-	//ĞÎÌ¬Ñ§´¦Àí???????????????????????????????????????????????????????????????????
-	Mat core = getStructuringElement(MORPH_RECT, Size(5, 5));
-	morphologyEx(img_binary, img_binary, MORPH_CLOSE, core, Point(-1, -1), 3);
-	morphologyEx(img_binary, img_binary, MORPH_OPEN, core, Point(-1, -1), 4);
-	//ÂÖÀª¼ì²â
-	vector<vector<Point>> contours2;
-	vector<Vec4i>	hierarchy2;
-	findContours(img_binary, contours2, hierarchy2, CV_RETR_TREE, CHAIN_APPROX_SIMPLE);
-	//1.ÂÖÀªÅÅĞò£¬ÄÃµ½×î´óÍâ½Ó¿ò
-	std::sort(contours2.begin(), contours2.end(), ContoursSortFun);
-	vector<Rect> boundRect(contours2.size());  //¶¨ÒåÍâ½Ó¾ØĞÎ¼¯ºÏ
-	vector<RotatedRect> box(contours2.size()); //¶¨Òå×îĞ¡Íâ½Ó¾ØĞÎ¼¯ºÏ
-	Point2f rect[4];
-	int xRoi, yRoi, widthRoi, heightRoi;
-	for (int i = 0; i <= 0; i++)
-	{
-		box[i] = minAreaRect(Mat(contours2[i]));  //¼ÆËãÃ¿¸öÂÖÀª×îĞ¡Íâ½Ó¾ØĞÎ
-		boundRect[i] = boundingRect(Mat(contours2[i]));
-		box[i].points(rect);  //°Ñ×îĞ¡Íâ½Ó¾ØĞÎËÄ¸ö¶Ëµã¸´ÖÆ¸ørectÊı×é
-		xRoi = boundRect[i].x;
-		yRoi = boundRect[i].y;
-		widthRoi = boundRect[i].width;
-		heightRoi = boundRect[i].height;
-		rectangle(img, Point(boundRect[i].x, boundRect[i].y), Point(boundRect[i].x + boundRect[i].width, boundRect[i].y + boundRect[i].height), Scalar(0, 255, 0), 2, 8);
-	}
-	imshow("¾ØĞÎ¿òÑ¡Ä§·½", img);
-	Mat solo;
-	//ÌáÈ¡Ä§·½
-	solo = img(Rect(xRoi, yRoi, widthRoi, heightRoi));
-	return solo;
-}
 
 int check(Mat imgThresholded)
 {
@@ -71,7 +25,7 @@ int check(Mat imgThresholded)
 	return false1;
 }
 
-//2.ÌáÈ¡À¶É«
+//2.æå–è“è‰²
 int cube_detector::check_color(Mat src)
 {
 	Mat imgHSV;
@@ -79,31 +33,81 @@ int cube_detector::check_color(Mat src)
 	cvtColor(src, imgHSV, COLOR_BGR2HSV);
 	Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
 	Mat imgThresholded1, imgThresholded2, imgThresholded3, imgThresholded4, imgThresholded5, imgThresholded6;
-	inRange(imgHSV, Scalar(90, 43, 46), Scalar(125, 255, 255), imgThresholded1);                                  /*ÅĞ¶Ï¾Å¸ö¿éÊÇ·ñÓĞ **À¶É«**£¬Èç¹ûÓĞ£¬Áîa=1           */
+	inRange(imgHSV, Scalar(90, 43, 46), Scalar(125, 255, 255), imgThresholded1);                                  /*åˆ¤æ–­ä¹ä¸ªå—æ˜¯å¦æœ‰ **è“è‰²**ï¼Œå¦‚æœæœ‰ï¼Œä»¤a=1           */
 	morphologyEx(imgThresholded1, imgThresholded1, MORPH_OPEN, element);
-	imshow("ÌáÈ¡À¶É«", imgThresholded1);
+	imshow("æå–è“è‰²", imgThresholded1);
 	int a = check(imgThresholded1);
 	return a;
 }
 
 
 
-
-
-//1.È¥±³¾°
-Mat cube_detector::getMat(Mat frame)
+//1.å»èƒŒæ™¯
+Mat cube_detector::getMat(Mat img)
 {
-	Mat img1, img2;                      //img2Îª½á¹ûÍ¼£¬img1ÎªÔ­Í¼£¬imgÊÇ½ÓÏÂÀ´Òª¾­¹ı¶şÖµ»¯´¦ÀíµÄÍ¼      
-	//¶ÁÈëÔ­Í¼
-	Mat img = cube_Find(frame);
+	Mat img1, img2;                      //img2ä¸ºç»“æœå›¾ï¼Œimg1ä¸ºåŸå›¾ï¼Œimgæ˜¯æ¥ä¸‹æ¥è¦ç»è¿‡äºŒå€¼åŒ–å¤„ç†çš„å›¾      
+	//è¯»å…¥åŸå›¾
 	img.copyTo(img1);
-	imshow("Ô­Í¼", img);
 	cvtColor(img, img, CV_BGR2HSV);
-	cvtColor(img, img, CV_BGR2GRAY);                               //¶Ôimg½øĞĞÒ»ÏµÁĞ´¦Àí¶şÖµ»¯
+	cvtColor(img, img, CV_BGR2GRAY);                               //å¯¹imgè¿›è¡Œä¸€ç³»åˆ—å¤„ç†äºŒå€¼åŒ–
 	GaussianBlur(img, img, Size(5, 5), 0, 0);
 	threshold(img, img, 140, 255, THRESH_BINARY);
 	medianBlur(img, img, 3);
-	img1.copyTo(img2, img);                                        //ºËĞÄÑÚÄ¤´¦Àí
-	imshow("È¥±³¾°",img2);
+	img1.copyTo(img2, img);                                        //æ ¸å¿ƒæ©è†œå¤„ç†
 	return img2;
+}
+
+Mat cube_detector::cube_Find(Mat img1)
+{
+	Mat img2;
+	//ä¿å­˜åŸå›¾
+	img1.copyTo(img2);
+	//æ‹¿åˆ°å»èƒŒæ™¯å›¾ç‰‡ï¼Œå‰©ä¸‹é­”æ–¹å’Œå°‘é‡çš„å™ªå£°ï¼ŒåŸºäºBGR
+	Mat img = getMat(img1);
+	Mat img_gray, img_binary, img_edge, img_hsv;
+	//è½¬ä¸ºHSVç©ºé—´
+	cvtColor(img, img_hsv, CV_BGR2HSV);
+	GaussianBlur(img_hsv, img_hsv, Size(5, 5), 0, 0);
+	//ç›´æ–¹å›¾å‡è¡¡åŒ–å¼±åŒ–èƒŒæ™¯ï¼ˆå¢å¼ºé­”æ–¹å›¾åƒï¼‰
+	vector<Mat> hsvSplit;
+	split(img_hsv, hsvSplit);
+	equalizeHist(hsvSplit[2], hsvSplit[2]);
+	merge(hsvSplit, img_hsv);
+	cvtColor(img_hsv, img_gray, CV_BGR2GRAY);
+	medianBlur(img_gray, img_gray, 3);
+	//***********æ’é™¤æ£•è‰²èƒŒæ™¯å¹²æ‰°*******************
+	cv::adaptiveThreshold(img_gray, img_binary, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 7, -4);
+	//å½¢æ€å­¦å¤„ç†???????????????????????????????????????????????????????????????????
+	Mat core = getStructuringElement(MORPH_RECT, Size(5, 5));
+	morphologyEx(img_binary, img_binary, MORPH_CLOSE, core, Point(-1, -1), 5);
+	morphologyEx(img_binary, img_binary, MORPH_OPEN, core, Point(-1, -1), 5);
+	imshow("-è½®å»“é€‰æ‹©äºŒå€¼å›¾", img_binary);
+	//è½®å»“æ£€æµ‹
+	vector<vector<Point>> contours2;
+	vector<Vec4i>	hierarchy2;
+	findContours(img_binary, contours2, hierarchy2, CV_RETR_TREE, CHAIN_APPROX_SIMPLE);
+	//1.è½®å»“æ’åºï¼Œæ‹¿åˆ°æœ€å¤§å¤–æ¥æ¡†
+	std::sort(contours2.begin(), contours2.end(), ContoursSortFun);
+	vector<Rect> boundRect(contours2.size());  //å®šä¹‰å¤–æ¥çŸ©å½¢é›†åˆ
+	vector<RotatedRect> box(contours2.size()); //å®šä¹‰æœ€å°å¤–æ¥çŸ©å½¢é›†åˆ
+	Point2f rect[4];
+	int xRoi, yRoi, widthRoi, heightRoi;
+	for (int i = 0; i <= 0; i++)
+	{
+		box[i] = minAreaRect(Mat(contours2[i]));  //è®¡ç®—æ¯ä¸ªè½®å»“æœ€å°å¤–æ¥çŸ©å½¢
+		boundRect[i] = boundingRect(Mat(contours2[i]));
+		box[i].points(rect);  //æŠŠæœ€å°å¤–æ¥çŸ©å½¢å››ä¸ªç«¯ç‚¹å¤åˆ¶ç»™rectæ•°ç»„
+		xRoi = boundRect[i].x;
+		yRoi = boundRect[i].y;
+		widthRoi = boundRect[i].width;
+		heightRoi = boundRect[i].height;
+		//ç›´æ¥åœ¨å»èƒŒæ™¯å›¾ä¸Šç”»çŸ©å½¢æ¡†
+		rectangle(img, Point(boundRect[i].x, boundRect[i].y), Point(boundRect[i].x + boundRect[i].width, boundRect[i].y + boundRect[i].height), Scalar(0, 255, 0), 2, 8);
+	}
+	imshow("åœ¨å»èƒŒæ™¯å›¾ä¸­çŸ©å½¢æ¡†é€‰é­”æ–¹", img);
+	Mat solo;
+	//æå–é­”æ–¹
+	solo = img(Rect(xRoi, yRoi, widthRoi, heightRoi));
+	imshow("åœ¨å»èƒŒæ™¯å›¾ç‰‡ä¸­æå–é­”æ–¹", solo);
+	return solo;
 }
